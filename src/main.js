@@ -233,11 +233,12 @@ async function startGame() {
     setupPowerUpButtons();
 
     // ==========================================
-    // GESTIÓN DE OVERLAYS (Botones) CON DIAGNÓSTICO
+    // GESTIÓN DE OVERLAYS (Botones) CON DIAGNÓSTICO Y FALLBACK
     // ==========================================
     console.log('10. Configurando botones del overlay...');
     const btnPrimary = document.getElementById('btn-primary');
     const btnSecondary = document.getElementById('btn-secondary');
+    const overlayTitleEl = document.getElementById('overlay-title');
 
     console.log('   🔍 btnPrimary encontrado:', !!btnPrimary);
     console.log('   🔍 btnSecondary encontrado:', !!btnSecondary);
@@ -246,6 +247,7 @@ async function startGame() {
       btnPrimary.addEventListener('click', (e) => {
         console.log('🖱️ [main.js] Botón PRIMARIO ("Continuar"/"Reintentar") PULSADO');
         console.log('   gameState.gamePhase actual:', gameState.gamePhase);
+        console.log('   Texto del overlay:', overlayTitleEl ? overlayTitleEl.textContent : 'N/A');
         
         const overlay = document.getElementById('overlay');
         if (overlay) {
@@ -253,8 +255,9 @@ async function startGame() {
           overlay.classList.add('hidden');
         }
         
-        if (gameState.gamePhase === GamePhase.VICTORY) {
-          console.log('   ✅ Fase VICTORY detectada. Avanzando al siguiente nivel...');
+        // Condición robusta: verifica la fase O el texto del overlay
+        if (gameState.gamePhase === GamePhase.VICTORY || (overlayTitleEl && overlayTitleEl.textContent.includes('Completado'))) {
+          console.log('   ✅ Victoria detectada. Avanzando al siguiente nivel...');
           gameState.currentLevel++;
           gameState.activeLevel = gameState.currentLevel;
           console.log('   Nuevo activeLevel:', gameState.activeLevel);
@@ -277,7 +280,14 @@ async function startGame() {
           console.log('   💀 Game Over. Recargando...');
           location.reload();
         } else {
-          console.warn('   ⚠️ Fase del juego no reconocida para el botón primario:', gameState.gamePhase);
+          console.warn('   ⚠️ Fase no reconocida:', gameState.gamePhase);
+          console.log('   🔄 Forzando avance de nivel por seguridad...');
+          gameState.currentLevel++;
+          gameState.activeLevel = gameState.currentLevel;
+          const newDefinition = LevelGenerator.generateCompleteLevel(gameState.activeLevel);
+          controller.loadLevelFromDefinition(newDefinition);
+          if (window.inputSystem) window.inputSystem.updateLevelState(controller.levelState);
+          window.refreshView();
         }
       });
     } else {

@@ -42,14 +42,9 @@ export class GameController {
   }
 
   loadLevelFromDefinition(definition) {
-    console.log('🏗️ [GameController] loadLevelFromDefinition:', definition.levelNumber);
-    console.log('   definition.timer:', definition.timer);
-    
+    console.log('️ [GameController] loadLevelFromDefinition:', definition.levelNumber);
     this.levelDefinition = definition;
     this.levelState = LevelBuilder.build(definition);
-    
-    console.log('   levelState.timer después de build:', this.levelState.timer);
-    
     this.loadLevel(this.levelState);
   }
 
@@ -77,7 +72,6 @@ export class GameController {
 
   _handleMoveObject({ objectId, destinationSlotId }) {
     console.log('⚙️ [GameController] _handleMoveObject iniciado:', objectId, '->', destinationSlotId);
-    console.log('   _resolving:', this._resolving, '| gamePhase:', this.gameState.gamePhase);
 
     if (this._resolving) {
       console.log('❌ [GameController] Rechazado: INPUT_LOCKED');
@@ -90,16 +84,13 @@ export class GameController {
 
     this._resolving = true;
     this.gameState.setPhase(GamePhase.RESOLVING);
-    console.log('🔒 [GameController] Emitiendo INPUT_LOCKED');
+    console.log(' [GameController] Emitiendo INPUT_LOCKED');
     this.eventBus.emit(EventType.INPUT_LOCKED, {});
 
     try {
-      console.log('🔄 [GameController] Llamando a movementSystem.execute...');
       const moveResult = this.movementSystem.execute(this.levelState, objectId, destinationSlotId);
-      console.log('📝 [GameController] Resultado de movementSystem:', moveResult);
 
       if (!moveResult.success) {
-        console.log('❌ [GameController] Movimiento fallido:', moveResult.reason);
         this._finishResolve();
         return { handled: false, reason: moveResult.reason };
       }
@@ -114,16 +105,24 @@ export class GameController {
 
       // Comprobar condiciones de fin
       if (this.victorySystem.check(this.levelState)) {
+        console.log('🏆 [GameController] ¡VICTORIA DETECTADA! Cambiando fase a VICTORY');
         this.gameState.setPhase(GamePhase.VICTORY);
         this.timerSystem.stop();
-        this._finishResolve();
+        this.eventBus.emit(EventType.LEVEL_COMPLETED, {});
+        // CORRECCIÓN: No llamar a _finishResolve() en victoria, para mantener fase VICTORY
+        this._resolving = false;
+        this.eventBus.emit(EventType.INPUT_UNLOCKED, {});
         return { handled: true, victory: true };
       }
 
       if (this.blockSystem.check(this.levelState)) {
+        console.log('🚫 [GameController] BLOQUEO DETECTADO! Cambiando fase a BLOCKED');
         this.gameState.setPhase(GamePhase.BLOCKED);
         this.timerSystem.stop();
-        this._finishResolve();
+        this.eventBus.emit(EventType.BLOCK_DETECTED, {});
+        // CORRECCIÓN: No llamar a _finishResolve() en bloqueo, para mantener fase BLOCKED
+        this._resolving = false;
+        this.eventBus.emit(EventType.INPUT_UNLOCKED, {});
         return { handled: true, blocked: true };
       }
 
@@ -159,6 +158,7 @@ export class GameController {
       if (this.victorySystem.check(this.levelState)) {
         this.gameState.setPhase(GamePhase.VICTORY);
         this.timerSystem.stop();
+        this.eventBus.emit(EventType.LEVEL_COMPLETED, {});
       }
       return { handled: true, powerUpUsed: true };
     }
@@ -168,22 +168,20 @@ export class GameController {
   _finishResolve() {
     console.log('🔓 [GameController] Finalizando resolución, emitiendo INPUT_UNLOCKED');
     this._resolving = false;
-    this.gameState.setPhase(GamePhase.READY);
+    // CORRECCIÓN: Solo volver a READY si estamos en RESOLVING
+    // No sobrescribir fases terminales como VICTORY o BLOCKED
+    if (this.gameState.gamePhase === GamePhase.RESOLVING) {
+      this.gameState.setPhase(GamePhase.READY);
+    }
     this.eventBus.emit(EventType.INPUT_UNLOCKED, {});
   }
 
   loadLevel(levelState) {
     console.log('🔄 [GameController] loadLevel llamado');
-    console.log('   levelState.timer:', levelState.timer);
-    
     this.levelState = levelState;
     this.gameState.setPhase(GamePhase.READY);
     this._resolving = false;
-    
-    // CRÍTICO: Iniciar el timer con el tiempo correcto del nivel
-    console.log('⏰ [GameController] Iniciando timer...');
     this.timerSystem.start(levelState);
-    console.log('✅ [GameController] Timer iniciado, tiempo actual:', this.timerSystem.getCurrentTime());
   }
 
   handleTimeExpired() {
