@@ -103,29 +103,39 @@ export class GameController {
       // Guardar progreso
       this.saveSystem.autoSave(this.gameState, this.levelDefinition, this.levelState.timer);
 
-      // Comprobar condiciones de fin
+      // ==========================================
+      // COMPROBAR VICTORIA (CRÍTICO: NO llamar a _finishResolve)
+      // ==========================================
       if (this.victorySystem.check(this.levelState)) {
         console.log('🏆 [GameController] ¡VICTORIA DETECTADA! Cambiando fase a VICTORY');
         this.gameState.setPhase(GamePhase.VICTORY);
         this.timerSystem.stop();
         this.eventBus.emit(EventType.LEVEL_COMPLETED, {});
-        // CORRECCIÓN: No llamar a _finishResolve() en victoria, para mantener fase VICTORY
+        
+        // CORRECCIÓN: Solo desbloquear input, NO cambiar la fase
         this._resolving = false;
         this.eventBus.emit(EventType.INPUT_UNLOCKED, {});
+        
         return { handled: true, victory: true };
       }
 
+      // ==========================================
+      // COMPROBAR BLOQUEO (CRÍTICO: NO llamar a _finishResolve)
+      // ==========================================
       if (this.blockSystem.check(this.levelState)) {
-        console.log('🚫 [GameController] BLOQUEO DETECTADO! Cambiando fase a BLOCKED');
+        console.log(' [GameController] BLOQUEO DETECTADO! Cambiando fase a BLOCKED');
         this.gameState.setPhase(GamePhase.BLOCKED);
         this.timerSystem.stop();
         this.eventBus.emit(EventType.BLOCK_DETECTED, {});
-        // CORRECCIÓN: No llamar a _finishResolve() en bloqueo, para mantener fase BLOCKED
+        
+        // CORRECCIÓN: Solo desbloquear input, NO cambiar la fase
         this._resolving = false;
         this.eventBus.emit(EventType.INPUT_UNLOCKED, {});
+        
         return { handled: true, blocked: true };
       }
 
+      // Solo si no hay victoria ni bloqueo, finalizar resolución normalmente
       this._finishResolve();
       return { handled: true, success: true };
 
@@ -168,8 +178,7 @@ export class GameController {
   _finishResolve() {
     console.log('🔓 [GameController] Finalizando resolución, emitiendo INPUT_UNLOCKED');
     this._resolving = false;
-    // CORRECCIÓN: Solo volver a READY si estamos en RESOLVING
-    // No sobrescribir fases terminales como VICTORY o BLOCKED
+    // Solo volver a READY si estamos en RESOLVING
     if (this.gameState.gamePhase === GamePhase.RESOLVING) {
       this.gameState.setPhase(GamePhase.READY);
     }
