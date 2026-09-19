@@ -5,10 +5,14 @@
  * - Permite seleccionar power-ups desde el HUD
  * - Para el Martillo: requiere seleccionar un objeto después
  * - Para Hielo/Tiempo: activación directa desde el HUD
+ * 
+ * Soporte completo para:
+ * - Ratón (desktop)
+ * - Pantalla táctil (móvil/tablet)
  */
 import { createMoveObjectCommand } from '../../core/commands/Commands.js';
 import { GamePhase } from '../../core/state/GamePhase.js';
-import { MovementRules } from '../../rules/MovementRules.js';
+import { MovementRules } from '../../rules/movement/MovementRules.js';
 import { PowerUpType } from '../../core/model/PowerUp.js';
 
 export class InputSystem {
@@ -74,9 +78,11 @@ export class InputSystem {
   _bindEvents() {
     console.log('📌 InputSystem: Configurando event listeners...');
     
-    // Ratón - Tablero
+    // ==========================================
+    // RATÓN (Desktop)
+    // ==========================================
     this.boardElement.addEventListener('mousedown', (e) => {
-      console.log('️ mousedown en board', e.target);
+      console.log('🖱️ mousedown en board', e.target);
       this._handleStart(e);
     });
     
@@ -88,25 +94,40 @@ export class InputSystem {
       this._handleEnd(e);
     });
     
-    // Táctil - Tablero
+    // ==========================================
+    // TÁCTIL (Móvil/Tablet)
+    // ==========================================
     this.boardElement.addEventListener('touchstart', (e) => {
       console.log('👆 touchstart en board');
       if (e.touches.length > 0) {
-        e.preventDefault();
-        this._handleStart(e.touches[0]);
+        e.preventDefault(); // ← preventDefault se llama en el TouchEvent
+        const touch = e.touches[0];
+        this._handleStart(touch);
       }
     }, { passive: false });
     
     document.addEventListener('touchmove', (e) => {
       if (e.touches.length > 0) {
         e.preventDefault();
-        this._handleMove(e.touches[0]);
+        const touch = e.touches[0];
+        this._handleMove(touch);
       }
     }, { passive: false });
     
     document.addEventListener('touchend', (e) => {
+      console.log('👆 touchend');
       if (e.changedTouches.length > 0) {
-        this._handleEnd(e.changedTouches[0]);
+        const touch = e.changedTouches[0];
+        this._handleEnd(touch);
+      }
+    });
+    
+    document.addEventListener('touchcancel', (e) => {
+      console.log('⚠️ touchcancel');
+      if (this.dragState) {
+        this.renderer.hideGhost();
+        this.renderer.highlightSlot(null);
+        this.dragState = null;
       }
     });
     
@@ -120,7 +141,7 @@ export class InputSystem {
     console.log('   selectedPowerUp:', this.selectedPowerUp);
     
     if (this.gameState.gamePhase !== GamePhase.READY) {
-      console.log('️ Input bloqueado - fase:', this.gameState.gamePhase);
+      console.log('⚠️ Input bloqueado - fase:', this.gameState.gamePhase);
       return;
     }
 
@@ -130,15 +151,19 @@ export class InputSystem {
       return;
     }
 
+    // Buscar el objeto interactivo más cercano (puede ser el div .object o la imagen dentro)
     const target = e.target.closest('.object[data-interactive="true"]');
     console.log('   object target:', target);
     
     if (!target) {
-      console.log(' No es un objeto interactivo');
+      console.log('❌ No es un objeto interactivo');
       return;
     }
 
-    e.preventDefault();
+    // Prevenir comportamiento por defecto (scroll, zoom, etc.)
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
 
     const objectId = target.dataset.objectId;
     console.log('   objectId:', objectId);
@@ -158,19 +183,24 @@ export class InputSystem {
       startY: e.clientY
     };
 
-    this.renderer.showGhost(target.textContent || '', e.clientX, e.clientY);
+    // Mostrar ghost en la posición del toque
+    const glyph = target.querySelector('.object-image')?.alt || target.textContent || '';
+    this.renderer.showGhost(glyph, e.clientX, e.clientY);
   }
 
   _handleHammerTarget(e) {
     const target = e.target.closest('.object[data-interactive="true"]');
     
     if (!target) {
-      console.log('❌ Martillo: No se seleccionó un objeto válido');
+      console.log(' Martillo: No se seleccionó un objeto válido');
       this.deselectPowerUp();
       return;
     }
 
-    e.preventDefault();
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    
     const objectId = target.dataset.objectId;
     console.log(' Martillo aplicado a:', objectId);
 
@@ -183,7 +213,7 @@ export class InputSystem {
     };
 
     const result = this.controller.handleCommand(command);
-    console.log('🔨 Resultado del Martillo:', result);
+    console.log(' Resultado del Martillo:', result);
     this.deselectPowerUp();
   }
 
