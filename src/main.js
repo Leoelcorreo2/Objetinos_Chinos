@@ -135,7 +135,7 @@ async function startGame() {
       const btnSecondary = document.getElementById('btn-secondary');
       
       if (!overlay || !overlayTitle || !overlayMsg || !btnPrimary || !btnSecondary) {
-        console.error('❌ Elementos del overlay no encontrados en el DOM');
+        console.error('❌ Elementos del overlay no encontrados en el DOM. Revisa index.html');
         return;
       }
       
@@ -144,6 +144,7 @@ async function startGame() {
       btnPrimary.textContent = primaryText;
       btnSecondary.textContent = secondaryText;
       overlay.classList.remove('hidden');
+      console.log('✅ [main.js] Overlay mostrado:', title);
     }
 
     // ==========================================
@@ -232,35 +233,60 @@ async function startGame() {
     setupPowerUpButtons();
 
     // ==========================================
-    // GESTIÓN DE OVERLAYS (Botones)
+    // GESTIÓN DE OVERLAYS (Botones) CON DIAGNÓSTICO
     // ==========================================
+    console.log('10. Configurando botones del overlay...');
     const btnPrimary = document.getElementById('btn-primary');
     const btnSecondary = document.getElementById('btn-secondary');
 
+    console.log('   🔍 btnPrimary encontrado:', !!btnPrimary);
+    console.log('   🔍 btnSecondary encontrado:', !!btnSecondary);
+
     if (btnPrimary) {
-      btnPrimary.addEventListener('click', () => {
+      btnPrimary.addEventListener('click', (e) => {
+        console.log('🖱️ [main.js] Botón PRIMARIO ("Continuar"/"Reintentar") PULSADO');
+        console.log('   gameState.gamePhase actual:', gameState.gamePhase);
+        
         const overlay = document.getElementById('overlay');
-        if (overlay) overlay.classList.add('hidden');
+        if (overlay) {
+          console.log('   Ocultando overlay...');
+          overlay.classList.add('hidden');
+        }
         
         if (gameState.gamePhase === GamePhase.VICTORY) {
+          console.log('   ✅ Fase VICTORY detectada. Avanzando al siguiente nivel...');
           gameState.currentLevel++;
           gameState.activeLevel = gameState.currentLevel;
+          console.log('   Nuevo activeLevel:', gameState.activeLevel);
+          
           const newDefinition = LevelGenerator.generateCompleteLevel(gameState.activeLevel);
           controller.loadLevelFromDefinition(newDefinition);
-          window.inputSystem.updateLevelState(controller.levelState);
+          
+          if (window.inputSystem) {
+            window.inputSystem.updateLevelState(controller.levelState);
+          }
           window.refreshView();
         } else if (gameState.gamePhase === GamePhase.BLOCKED || gameState.gamePhase === GamePhase.TIME_OUT) {
+          console.log('   🔄 Reintentando nivel...');
           controller.retryLevel();
-          window.inputSystem.updateLevelState(controller.levelState);
+          if (window.inputSystem) {
+            window.inputSystem.updateLevelState(controller.levelState);
+          }
           window.refreshView();
         } else if (gameState.gamePhase === GamePhase.GAME_OVER) {
+          console.log('   💀 Game Over. Recargando...');
           location.reload();
+        } else {
+          console.warn('   ⚠️ Fase del juego no reconocida para el botón primario:', gameState.gamePhase);
         }
       });
+    } else {
+      console.error('❌ [main.js] No se encontró el elemento #btn-primary en el DOM. Revisa index.html');
     }
 
     if (btnSecondary) {
       btnSecondary.addEventListener('click', () => {
+        console.log('🖱️ [main.js] Botón SECUNDARIO ("Salir") PULSADO');
         const overlay = document.getElementById('overlay');
         if (overlay) overlay.classList.add('hidden');
         location.reload();
@@ -268,7 +294,7 @@ async function startGame() {
     }
 
     // Renderizado inicial
-    console.log('10. Renderizado inicial...');
+    console.log('11. Renderizado inicial...');
     window.refreshView();
     
     console.log('🎉 [main.js] ¡JUEGO INICIADO CORRECTAMENTE! 🎉');
