@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Objetinos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="hud">
+    <div id="lives-display">♥♥♥♥♥</div>
+    <div id="level-display">Nivel 1</div>
+    <div id="timer-display">02:00</div>
+  </header>
+
+  <div id="powerups-container">
+    <div class="powerup-btn" data-power-up-type="HAMMER">🔨<span class="powerup-count">2</span></div>
+    <div class="powerup-btn" data-power-up-type="ICE">❄️<span class="powerup-count">1</span></div>
+    <div class="powerup-btn" data-power-up-type="TIME_BOOST">⏰<span class="powerup-count">1</span></div>
+  </div>
+
+  <main id="game-area">
+    <div id="board"></div>
+  </main>
+
+  <div id="ghost"></div>
+  <div id="notification"></div>
+
+  <div id="overlay" class="hidden">
+    <div class="panel">
+      <h2 id="overlay-title">Mensaje</h2>
+      <p id="overlay-msg">Detalle</p>
+      <div class="buttons">
+        <button id="btn-primary">Continuar</button>
+        <button id="btn-secondary" class="secondary">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

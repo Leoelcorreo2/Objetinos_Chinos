@@ -1,0 +1,15 @@
+
+CMD + Ruta:
+
+python -m http.server 8000
+
+
+Navegador:
+
+http://localhost:8000
+
+
+
+
+   localStorage.clear();
+   location.reload();

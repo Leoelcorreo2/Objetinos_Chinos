@@ -1,0 +1,24 @@
+objetinos/
+├── index.html
+├── src/
+│   └── core/
+│       ├── model/
+│       │   ├── GameObject.js
+│       │   ├── Slot.js
+│       │   ├── Layer.js
+│       │   ├── Shelf.js
+│       │   ├── Structure.js
+│       │   └── Board.js
+│       ├── state/
+│       │   ├── GamePhase.js
+│       │   ├── DynamicState.js
+│       │   └── LevelState.js
+│       ├── commands/
+│       │   └── Commands.js
+│       ├── events/
+│       │   └── Events.js
+│       └── queries/
+│           └── StateQueries.js
+└── tests/
+    └── core/
+        └── foundation.test.js

@@ -1,0 +1,23 @@
+objetinos/
+├── assets/
+│   └── objects/
+│       ├── peluches_01/
+│       │   └── (imágenes del tema 1 si las tienes)
+│       └── peluches_02/
+│           ├── 01.png  (Cerdo)
+│           ├── 02.png  (Cabra)
+│           ├── 03.png  (Burro)
+│           ├── 04.png  (Caballo)
+│           ├── 05.png  (Llama)
+│           ├── 06.png  (Alpaca)
+│           ├── 07.png  (Gallina)
+│           ├── 08.png  (Pato)
+│           ├── 09.png  (Pulpo)
+│           ├── 10.png  (Tiburón)
+│           ├── 11.png  (Tortuga)
+│           ├── 12.png  (Delfín)
+│           ├── 13.png  (Orca)
+│           ├── 14.png  (Narval)
+│           └── 15.png  (Morsa)
+└── src/
+    └── (tus archivos JS)

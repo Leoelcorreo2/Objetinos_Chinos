@@ -1,0 +1,132 @@
+/* ==========================================
+   HUECOS Y OBJETOS
+   ========================================== */
+.slot {
+  width: 80px;           /* Ancho fijo del slot */
+  height: 80px;          /* Alto fijo del slot */
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.slot.highlight {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: #22c55e;
+  transform: scale(1.05);
+}
+
+.object {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: transform 0.1s, opacity 0.3s;
+  position: relative;
+  padding: 4px;          /* Pequeño margen interno */
+  box-sizing: border-box;
+}
+
+.object:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.object.blocked {
+  filter: grayscale(100%) brightness(0.7);
+  cursor: not-allowed;
+}
+
+/* Imágenes de objetos - ESCALADO PROPORCIONAL */
+.object-image {
+  width: 100%;           /* Ocupa todo el ancho del slot */
+  height: auto;          /* Alto automático proporcional */
+  max-height: 100%;      /* No exceder la altura del slot */
+  object-fit: contain;   /* Contener la imagen sin deformar */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  display: block;
+}
+
+/* Fallback para emojis cuando no hay imagen */
+.object:not(:has(.object-image)) {
+  font-size: 40px;       /* Tamaño del emoji */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estados de capa */
+.layer.shaded .object {
+  opacity: 0.5;
+  filter: brightness(0.7);
+}
+
+.layer.shaded .object-image {
+  opacity: 0.5;
+  filter: brightness(0.7);
+}
+
+.object.blocked .object-image {
+  filter: grayscale(100%) brightness(0.6);
+  opacity: 0.7;
+}
+
+/* Animación de carga suave */
+.object-image {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================
+   CAPAS
+   ========================================== */
+.layer {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* Ajuste para estantes especiales de 1 hueco */
+.shelf[data-type="special"] .layer {
+  justify-content: center;
+}
+
+.shelf[data-type="special"] .slot {
+  width: 100px;          /* Slot más ancho para especiales */
+  height: 100px;
+}
+
+.layer.top {
+  background: rgba(99, 102, 241, 0.15);
+  border: 2px solid rgba(99, 102, 241, 0.4);
+}
+
+.layer.shaded {
+  background: rgba(148, 163, 184, 0.05);
+  border: 2px solid rgba(148, 163, 184, 0.2);
+}
+
+.layer.invisible {
+  display: none;
+}
