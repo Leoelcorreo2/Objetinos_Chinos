@@ -556,3 +556,30 @@ body {
     font-size: 30px;
   }
 }
+
+/* ==========================================
+   GHOST (objeto arrastrado)
+   ========================================== */
+#ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+#ghost .ghost-image {
+  width: 80px;
+  height: auto;
+  max-height: 80px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#ghost:not(:has(.ghost-image)) {
+  font-size: 60px;
+}
